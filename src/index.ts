@@ -99,7 +99,7 @@ const form_schema = Joi.object({
 	email: Joi.string().email().optional(),
 	phoneNumber: Joi.string().optional(),
 	paymentMethod: Joi.string().required(),
-	paymentPicUrl: Joi.string().uri().optional()
+	paymentPicUrl: Joi.string().optional()
 })
 
 app.post("/form", validate_middleware(form_schema),  async (req: Request, res: Response) => {
