@@ -15,7 +15,6 @@ model Participant {
   name  String
   is_coming Boolean?
   has_submit  Boolean
-  class String?
-  phone_number  Int? @unique
+  phone_number  String? @unique
   email String?  @unique
 }
