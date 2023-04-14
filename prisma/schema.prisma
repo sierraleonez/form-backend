@@ -14,6 +14,8 @@ model Participant {
   id  Int @default(autoincrement()) @id
   name  String
   is_coming Boolean?
+  payment_method String?
+  payment_image_url String?
   has_submit  Boolean
   phone_number  String? @unique
   email String?  @unique

@@ -97,12 +97,14 @@ const form_schema = Joi.object({
 	participantId: Joi.number().required(),
 	isComing: Joi.boolean().required(),
 	email: Joi.string().email().optional(),
-	phoneNumber: Joi.string().optional()
+	phoneNumber: Joi.string().optional(),
+	paymentMethod: Joi.string().required(),
+	paymentPicUrl: Joi.string().uri().optional()
 })
 
 app.post("/form", validate_middleware(form_schema),  async (req: Request, res: Response) => {
 	try {
-		const { participantId, isComing, email, phoneNumber } = req.body;
+		const { participantId, isComing, email, phoneNumber, paymentMethod, paymentPicUrl } = req.body;
 		const result = await prisma.participant.update({
 			where: { id: participantId },
 			data: {
@@ -110,6 +112,8 @@ app.post("/form", validate_middleware(form_schema),  async (req: Request, res: R
 				email,
 				is_coming: isComing,
 				phone_number: phoneNumber,
+				payment_image_url: paymentPicUrl,
+				payment_method: paymentMethod
 			},
 		});
 	
