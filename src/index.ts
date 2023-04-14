@@ -4,6 +4,8 @@ import cors from "cors";
 import express, { Request, Response } from "express";
 import createError from "http-errors";
 import { readFile, utils } from "xlsx";
+import Joi from 'joi'
+import { validate_middleware } from "./middleware/validator";
 const prisma = new PrismaClient();
 const app = express();
 dotenv.config();
@@ -58,40 +60,65 @@ app.get("/parse", async (req: Request, res: Response) => {
 });
 
 app.get("/form-content", async (req: Request, res: Response) => {
-  const participant = await prisma.participant.findMany({
-		where: {
-			has_submit: false
-		}
-	});
-  res.json(participant);
+	try {
+		const participant = await prisma.participant.findMany({
+			where: {
+				has_submit: false
+			}
+		});
+		res.json(participant);
+	} catch (err) {
+		res.json({
+			message: "something is wrong"
+		})
+	}
 });
 
-app.post("/participant", async (req: Request, res: Response) => {
-  const { name, hasSubmit, isComing } = req.body;
-
-  const result = await prisma.participant.create({
-    data: {
-      name,
-      has_submit: hasSubmit,
-      is_coming: isComing,
-    },
-  });
-  res.json(result);
+app.post("/participant",  async (req: Request, res: Response) => {
+	try {
+		const { name, hasSubmit, isComing } = req.body;
+	
+		const result = await prisma.participant.create({
+			data: {
+				name,
+				has_submit: hasSubmit,
+				is_coming: isComing,
+			},
+		});
+		res.json(result);
+	} catch (err) {
+		res.json({
+			message: "something is wrong.."
+		})
+	}
 });
 
-app.post("/form", async (req: Request, res: Response) => {
-  const { participantId, isComing, email, phoneNumber } = req.body;
-  const result = await prisma.participant.update({
-    where: { id: participantId },
-    data: {
-      has_submit: true,
-      email,
-      is_coming: isComing,
-      phone_number: phoneNumber,
-    },
-  });
+const form_schema = Joi.object({
+	participantId: Joi.number().required(),
+	isComing: Joi.boolean().required(),
+	email: Joi.string().email().optional(),
+	phoneNumber: Joi.string().optional()
+})
 
-  res.json(result);
+app.post("/form", validate_middleware(form_schema),  async (req: Request, res: Response) => {
+	try {
+		const { participantId, isComing, email, phoneNumber } = req.body;
+		const result = await prisma.participant.update({
+			where: { id: participantId },
+			data: {
+				has_submit: true,
+				email,
+				is_coming: isComing,
+				phone_number: phoneNumber,
+			},
+		});
+	
+		res.json(result);
+	} catch (err) {
+		res.json({
+			message: "something is wrong"
+		})
+	}
 });
 
 // Clear participant
