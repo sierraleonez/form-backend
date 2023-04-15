@@ -4,7 +4,7 @@ import cors from "cors";
 import express, { Request, Response } from "express";
 import createError from "http-errors";
 import { readFile, utils } from "xlsx";
-import Joi from 'joi'
+import Joi from "joi";
 import { validate_middleware } from "./middleware/validator";
 const prisma = new PrismaClient();
 const app = express();
@@ -60,69 +60,95 @@ app.get("/parse", async (req: Request, res: Response) => {
 });
 
 app.get("/form-content", async (req: Request, res: Response) => {
-	try {
-		const participant = await prisma.participant.findMany({
-			where: {
-				has_submit: false
-			}
-		});
-		res.json(participant);
-	} catch (err) {
-		res.json({
-			message: "something is wrong"
-		})
-	}
+  try {
+    const participant = await prisma.participant.findMany({
+      where: {
+        has_submit: false,
+      },
+    });
+    res.json(participant);
+  } catch (err) {
+    res.json({
+      message: "something is wrong",
+    });
+  }
 });
 
-app.post("/participant",  async (req: Request, res: Response) => {
-	try {
-		const { name, hasSubmit, isComing } = req.body;
-	
-		const result = await prisma.participant.create({
-			data: {
-				name,
-				has_submit: hasSubmit,
-				is_coming: isComing,
-			},
-		});
-		res.json(result);
-	} catch (err) {
-		res.json({
-			message: "something is wrong.."
-		})
-	}
+app.post("/participant", async (req: Request, res: Response) => {
+  try {
+    const { name, hasSubmit, isComing } = req.body;
+
+    const result = await prisma.participant.create({
+      data: {
+        name,
+        has_submit: hasSubmit,
+        is_coming: isComing,
+      },
+    });
+    res.json(result);
+  } catch (err) {
+    res.json({
+      message: "something is wrong..",
+    });
+  }
 });
 
 const form_schema = Joi.object({
-	participantId: Joi.number().required(),
-	isComing: Joi.boolean().required(),
-	email: Joi.string().email().optional(),
-	phoneNumber: Joi.string().optional(),
-	paymentMethod: Joi.string().required(),
-	paymentPicUrl: Joi.string().optional()
-})
+  participantId: Joi.number().required(),
+  isComing: Joi.boolean().required(),
+  email: Joi.string().email().optional(),
+  phoneNumber: Joi.string().optional(),
+  paymentMethod: Joi.string().required(),
+  paymentPicUrl: Joi.string().optional(),
+});
 
-app.post("/form", validate_middleware(form_schema),  async (req: Request, res: Response) => {
-	try {
-		const { participantId, isComing, email, phoneNumber, paymentMethod, paymentPicUrl } = req.body;
-		const result = await prisma.participant.update({
-			where: { id: participantId },
-			data: {
-				has_submit: true,
-				email,
-				is_coming: isComing,
-				phone_number: phoneNumber,
-				payment_image_url: paymentPicUrl,
-				payment_method: paymentMethod
-			},
-		});
-	
-		res.json(result);
-	} catch (err) {
-		res.json({
-			message: "something is wrong"
-		})
-	}
+app.post(
+  "/form",
+  validate_middleware(form_schema),
+  async (req: Request, res: Response) => {
+    try {
+      const {
+        participantId,
+        isComing,
+        email,
+        phoneNumber,
+        paymentMethod,
+        paymentPicUrl,
+      } = req.body;
+      const result = await prisma.participant.update({
+        where: { id: participantId },
+        data: {
+          has_submit: true,
+          email,
+          is_coming: isComing,
+          phone_number: phoneNumber,
+          payment_image_url: paymentPicUrl,
+          payment_method: paymentMethod,
+        },
+      });
+
+      res.json(result);
+    } catch (err) {
+      res.json({
+        message: "something is wrong",
+      });
+    }
+  }
+);
+
+app.get("/participant", async (req: Request, res: Response) => {
+  try {
+    const isComing = req.query.coming === "true";
+    const participant = await prisma.participant.findMany({
+      where: {
+        ...(req.query.coming !== undefined && { has_submit: isComing }),
+      },
+    });
+    res.json(participant);
+  } catch (err) {
+    console.log(err);
+    res.json({ message: "something is wrong..." });
+  }
 });
 
 // Clear participant
