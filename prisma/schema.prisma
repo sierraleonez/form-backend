@@ -19,4 +19,5 @@ model Participant {
   has_submit  Boolean
   phone_number  String? @unique
   email String?  @unique
+  food_option String?
 }

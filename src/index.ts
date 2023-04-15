@@ -100,6 +100,7 @@ const form_schema = Joi.object({
   phoneNumber: Joi.string().optional(),
   paymentMethod: Joi.string().required(),
   paymentPicUrl: Joi.string().optional(),
+	foodOption: Joi.string().required()
 });
 
 app.post(
@@ -114,6 +115,7 @@ app.post(
         phoneNumber,
         paymentMethod,
         paymentPicUrl,
+				foodOption
       } = req.body;
       const result = await prisma.participant.update({
         where: { id: participantId },
@@ -124,6 +126,7 @@ app.post(
           phone_number: phoneNumber,
           payment_image_url: paymentPicUrl,
           payment_method: paymentMethod,
+					food_option: foodOption
         },
       });
 
