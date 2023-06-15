@@ -6,10 +6,15 @@ import createError from "http-errors";
 import { readFile, utils } from "xlsx";
 import Joi from "joi";
 import { validate_middleware } from "./middleware/validator";
-const prisma = new PrismaClient();
-const app = express();
+
 dotenv.config();
 
+// Initiate connection to prisma, it using DATABASE_KEY inside .env to connect
+const prisma = new PrismaClient();
+
+const app = express();
+
+// Middleware
 app.use(express.json());
 app.use(cors());
 
@@ -77,7 +82,6 @@ app.get("/form-content", async (req: Request, res: Response) => {
 app.post("/participant", async (req: Request, res: Response) => {
   try {
     const { name, hasSubmit, isComing } = req.body;
-
     const result = await prisma.participant.create({
       data: {
         name,
@@ -100,7 +104,7 @@ const form_schema = Joi.object({
   phoneNumber: Joi.string().optional(),
   paymentMethod: Joi.string().required(),
   paymentPicUrl: Joi.string().optional(),
-	foodOption: Joi.string().required()
+  foodOption: Joi.string().required(),
 });
 
 app.post(
@@ -115,7 +119,7 @@ app.post(
         phoneNumber,
         paymentMethod,
         paymentPicUrl,
-				foodOption
+        foodOption,
       } = req.body;
       const result = await prisma.participant.update({
         where: { id: participantId },
@@ -126,7 +130,7 @@ app.post(
           phone_number: phoneNumber,
           payment_image_url: paymentPicUrl,
           payment_method: paymentMethod,
-					food_option: foodOption
+          food_option: foodOption,
         },
       });
 
@@ -155,13 +159,14 @@ app.get("/participant", async (req: Request, res: Response) => {
 });
 
 // Clear participant
-app.delete("/participant", async (req: Request, res: Response) => {
+// Development purpose only
+app.delete("/participant", async (_: Request, res: Response) => {
   const result = await prisma.$queryRaw`TRUNCATE table "Participant"`;
 
   res.json(result);
 });
 
-app.use((req: Request, res: Response, next: Function) => {
+app.use((_: Request, __: Response, next: Function) => {
   next(createError(404));
 });
 
